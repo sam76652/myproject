@@ -1,0 +1,98 @@
+package com.TestCases;
+
+import java.io.IOException;
+import org.apache.poi.EncryptedDocumentException;
+import org.openqa.selenium.WebDriver;
+import org.testng.Assert;
+import org.testng.ITestResult;
+import org.testng.annotations.*;
+
+import com.POMclasses.LoginPom;
+import com.Utility.BrowserSetup;
+import com.Utility.ExcelRead;
+import com.Utility.ScreenShot;
+
+public class TestCases {
+	WebDriver driver;
+
+	@BeforeClass
+	public void browser() {
+		BrowserSetup set = new BrowserSetup();
+		driver = set.initBrowser();
+	}
+
+	@BeforeMethod
+	public void refresh() {
+		driver.navigate().refresh();
+	}
+
+	// Invalid username invalid password
+	ExcelRead read = new ExcelRead();
+
+	@AfterMethod
+	public void screenShot(ITestResult result) throws IOException {
+		if (ITestResult.FAILURE == result.getStatus()) {
+
+			ScreenShot.capture(driver);
+
+		}
+	}
+
+	@AfterClass
+	public void closeDriver() {
+		driver.close();
+	}
+
+	@Test
+	public void tc01() throws EncryptedDocumentException, IOException, InterruptedException {
+		LoginPom pom = new LoginPom(driver);
+		pom.enterUserName(read.readExcel(0, 0));
+		pom.enterPassword(read.readExcel(0, 1));
+		pom.clickonLogin();
+		Thread.sleep(2000);
+
+		// assertion
+		String actual = pom.showErrorMsgForBothInvalid();
+		String expected = "Invalid username or password.";
+		Assert.assertEquals(actual, expected);
+	}
+	// Invalid userName and password blank
+	@Test
+	public void tc02() throws EncryptedDocumentException, IOException {
+		LoginPom pom = new LoginPom(driver);
+		pom.enterUserName(read.readExcel(1, 0));
+		pom.clickonLogin();
+
+		// assertion
+		String actual = pom.showErrorForlengthofPasswrd();
+		String expected = "Password should be minimum 6 characters.";
+		Assert.assertEquals(actual, expected);
+	}
+	// blank userName and Invalid password
+	@Test
+	public void tc03() throws EncryptedDocumentException, IOException {
+		LoginPom pom = new LoginPom(driver);
+		pom.enterPassword(read.readExcel(2, 1));
+		pom.clickonLogin();
+
+		// Assertion
+		String actual = pom.showErrorForlengthofUsername();
+		String expected = "User ID should be minimum 6 characters.";
+		Assert.assertEquals(actual, expected);
+
+	}
+	// blank userName and Blank password
+	@Test
+	public void tc04() {
+		LoginPom pom = new LoginPom(driver);
+		pom.clickonLogin();
+		// Assertion
+		String actual = pom.showErrorForlengthofUsername();
+		String expected = "User ID should be minimum 6 characters.";
+		Assert.assertEquals(actual, expected);
+
+		String actual1 = pom.showErrorForlengthofPasswrd();
+		String expected1 = "Password should be minimum 6 characters.";
+		Assert.assertEquals(actual1, expected1);
+
+	}}
